@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App RecicleJá - Vitória/ES</title>
+    <style>
+        /* Estilos Base - Simulador de Celular */
+        *, *::before, *::after { box-sizing: border-box; }
+        
+        body {
+            background-color: #e8f5e9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .mobile-simulator {
+            width: 360px;
+            height: 640px;
+            background-color: #f4f6f4;
+            border-radius: 35px;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+            border: 10px solid #222;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* CABEÇALHO COM MARGENS PROPORCIONAIS */
+        .header-institutional {
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            height: 125px; 
+            display: flex;
+            align-items: center;
+            padding: 30px 20px 15px 20px;
+            border-radius: 0 0 20px 20px;
+            position: relative;
+            z-index: 5;
+        }
+        
+        .header-logos {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .header-logos img.project-logo { 
+            width: 45%; 
+            height: 55px; 
+            object-fit: contain;
+            object-position: left center;
+        }
+
+        .header-logos img.city-logo { 
+            width: 45%; 
+            height: 55px; 
+            object-fit: contain; 
+            object-position: right center;
+        }
+
+        /* ÁREA DE CONTEÚDO */
+        .content-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0 20px 15px 20px;
+            position: relative;
+        }
+
+        .content-container::-webkit-scrollbar { display: none; }
+
+        /* SISTEMA DE TELAS */
+        .app-screen { display: none; width: 100%; animation: fadeIn 0.3s ease; }
+        .app-screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* CAIXA DE PONTOS COM SOMBRA À ESQUERDA */
+        .points-module {
+            margin-top: -25px; 
+            position: relative;
+            z-index: 10;
+        }
+
+        .points-greeting {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .points-card {
+            background-color: white;
+            border-radius: 18px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: -6px 4px 12px rgba(46, 125, 50, 0.15); 
+            border: 1px solid rgba(46, 125, 50, 0.05);
+        }
+
+        .points-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: black;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .points-value {
+            font-size: 40px;
+            font-weight: 800;
+            color: #81c784;
+            line-height: 1;
+        }
+
+        /* BOTÃO DE BUSCA COMPACTO */
+        .search-module { margin-top: 25px; }
+
+        .btn-search-trigger {
+            width: 100%;
+            background-color: white;
+            border: 1px solid rgba(46, 125, 50, 0.15);
+            padding: 10px 8px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            box-shadow: -6px 4px 12px rgba(46, 125, 50, 0.15);
+            transition: all 0.2s;
+        }
+        .btn-search-trigger:active {
+            transform: scale(0.98);
+            box-shadow: -2px 2px 4px rgba(46, 125, 50, 0.15);
+        }
+        
+        .btn-search-trigger img.logo2 { 
+            width: 32px; 
+            height: 32px; 
+            object-fit: contain; 
+            flex-shrink: 0;
+        }
+        
+        .btn-search-trigger span { 
+            font-size: 12.5px; 
+            color: #1b5e20; 
+            font-weight: 700; 
+            white-space: nowrap; 
+        }
+
+        /* Seleção de bairros */
+        .bairro-selector-wrapper {
+            display: none;
+            margin-top: 15px;
+            animation: fadeIn 0.2s ease;
+        }
+        .bairro-selector-wrapper.visible {
+            display: block;
+        }
+
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 13px; background-color: white; }
+        
+        .station-card { 
+            background: white; 
+            padding: 12px; 
+            border-radius: 10px; 
+            margin-bottom: 10px; 
+            border-left: 4px solid #4caf50; 
+            box-shadow: -4px 4px 8px rgba(46, 125, 50, 0.08); 
+        }
+        .station-card h5 { margin: 0 0 4px 0; font-size: 13px; color: #333; }
+        .station-card p { margin: 0; font-size: 11px; color: #666; }
+
+        /* GRID DE BOTÕES SECUNDÁRIOS */
+        .action-grid-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        
+        .card-half { 
+            background: white; 
+            padding: 15px 10px; 
+            border-radius: 12px; 
+            text-align: center; 
+            box-shadow: -6px 4px 12px rgba(46, 125, 50, 0.15); 
+            border: 1px solid rgba(46, 125, 50, 0.05);
+            cursor: pointer; 
+            transition: transform 0.1s; 
+        }
+        .card-half:active { transform: scale(0.95); }
+        .card-half .icon { font-size: 20px; margin-bottom: 4px; }
+        .card-half p { margin: 0; font-size: 11px; color: #333; font-weight: 600; }
+
+        /* SEÇÃO HISTÓRICO */
+        .history-section { margin-top: 25px; }
+        .history-section h4 { font-size: 13px; color: #555; margin: 0 0 10px 0; font-weight: 700; text-transform: uppercase; }
+        
+        .history-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: -6px 4px 12px rgba(46, 125, 50, 0.15); 
+            border: 1px solid rgba(46, 125, 50, 0.05);
+        }
+        
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .history-item:last-child { border-bottom: none; }
+        .history-details p { margin: 0; font-size: 12px; font-weight: 600; color: #333; }
+        .history-details span { font-size: 10px; color: #888; }
+        .history-pts { font-size: 13px; font-weight: 700; color: #2e7d32; }
+
+        /* ESTILOS DAS TELAS DE CONTEÚDO */
+        .screen-title { color: #1b5e20; font-size: 18px; margin: 10px 0; font-weight: 700; }
+        .reward-item-card { background: white; border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: -4px 4px 8px rgba(0,0,0,0.05); }
+        .reward-info h5 { margin: 0; font-size: 13px; color: #333; }
+        .reward-info p { margin: 2px 0 0 0; font-size: 11px; color: #666; }
+        .btn-redeem { background: #2e7d32; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
+        
+        /* Ajustes no Guia Prático */
+        .guide-topic { margin-bottom: 15px; background: white; padding: 12px; border-radius: 10px; box-shadow: -4px 4px 8px rgba(0,0,0,0.05); }
+        .guide-topic h5 { margin: 0 0 6px 0; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+        .guide-topic ul { margin: 0; padding-left: 18px; font-size: 11px; color: #444; }
+        .guide-topic li { margin-bottom: 4px; }
+        .guide-points-box { display: flex; gap: 12px; margin: 8px 0 12px 0; align-items: center; }
+        .guide-icon { font-size: 28px; }
+        .points-tag-container { font-size: 11px; padding: 6px 8px; border-radius: 8px; width: 100%; line-height: 1.4; }
+
+        /* Formulário de Resgate Nativo */
+        .form-group-app { margin: 20px 0; }
+        .form-group-app label { font-size: 12px; font-weight: bold; color: #1b5e20; display: block; margin-bottom: 8px; }
+        .btn-success { background-color: #2e7d32; color: white; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-success:active { background-color: #1b5e20; }
+
+        /* Menu Inferior */
+        .bottom-nav { background-color: white; height: 60px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #eee; z-index: 10; }
+        .nav-item { text-align: center; color: #9e9e9e; font-size: 11px; cursor: pointer; flex: 1; padding: 8px 0; }
+        .nav-item.active { color: #2e7d32; font-weight: bold; }
+        .nav-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+
+        /* --- SISTEMA DE POP-UPS (MODAIS) NATIVOS DO APLICATIVO --- */
+        .app-modal-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+        .app-modal-overlay.active { display: flex; }
+        .app-modal-box {
+            background: white;
+            width: 85%;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transform: scale(0.9);
+            animation: popIn 0.3s forwards ease-out;
+        }
+        @keyframes popIn { to { transform: scale(1); } }
+        .modal-icon { font-size: 40px; margin-bottom: 10px; }
+        .modal-title { font-size: 16px; font-weight: 700; color: #1b5e20; margin: 0 0 10px 0; }
+        .modal-text { font-size: 12px; color: #555; margin-bottom: 20px; line-height: 1.4; }
+        .btn-modal { background: #2e7d32; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 12px; font-weight: bold; width: 100%; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-simulator">
+        
+        <header class="header-institutional">
+            <div class="header-logos">
+                <img src="logo1.png" alt="RecicleJá" class="project-logo">
+                <img src="logo3.png" alt="Prefeitura de Vitória" class="city-logo">
+            </div>
+        </header>
+
+        <div class="content-container">
+            
+            <div id="screen-home" class="app-screen active">
+                
+                <section class="points-module">
+                    <span class="points-greeting">Olá Diana!</span>
+                    <div class="points-card">
+                        <div class="points-title">SEUS PONTOS</div>
+                        <div class="points-value" id="global-points">1450 pt</div>
+                    </div>
+                </section>
+
+                <section class="search-module">
+                    <button class="btn-search-trigger" onclick="toggleBairroSelector()">
+                        <img src="logo2.png" alt="Estações" class="logo2">
+                        <span>Localize o RecicleJá mais próximo</span>
+                    </button>
+                    
+                    <div id="bairro-wrapper" class="bairro-selector-wrapper">
+                        <p style="font-size: 11px; color: #666; margin: 5px 0 8px 0;">Selecione o morro ou bairro em Vitória/ES:</p>
+                        <select id="bairro-select" class="form-control" onchange="searchStations()">
+                            <option value="">-- Escolha uma região --</option>
+                            <option value="Morro do Quadro">Morro do Quadro</option>
+                            <option value="Bairro da Penha">Bairro da Penha</option>
+                            <option value="Andorinhas">Andorinhas</option>
+                            <option value="Centro">Centro</option>
+                            <option value="Jardim Camburi">Jardim Camburi</option>
+                            <option value="Praia do Canto">Praia do Canto</option>
+                        </select>
+                    </div>
+
+                    <div id="station-results-container" style="margin-top: 15px;"></div>
+                </section>
+
+                <div class="action-grid-two">
+                    <div class="card-half" onclick="navigateTo('screen-rewards')">
+                        <div class="icon">🎁</div>
+                        <p>Trocar Pontos</p>
+                    </div>
+                    <div class="card-half" onclick="navigateTo('screen-guide')">
+                        <div class="icon">♻️</div>
+                        <p>Guia Prático</p>
+                    </div>
+                </div>
+
+                <section class="history-section">
+                    <h4>Últimas Descartagens</h4>
+                    <div class="history-card">
+                        <div class="history-item">
+                            <div class="history-details">
+                                <p>Garrafas PET e Vidro</p>
+                                <span>05 Jun 2026 • Eco-Estação Centro</span>
+                            </div>
+                            <div class="history-pts">+120 pt</div>
+                        </div>
+                        <div class="history-item">
+                            <div class="history-details">
+                                <p>Latas de Alumínio</p>
+                                <span>29 Mai 2026 • Eco-Estação J. Camburi</span>
+                            </div>
+                            <div class="history-pts">+85 pt</div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <div id="screen-rewards" class="app-screen">
+                <button class="form-control" style="background:#e0e0e0; color:#555; margin: 15px 0 10px 0; border:none; padding:8px; cursor:pointer;" onclick="navigateTo('screen-home')">⬅ Voltar ao Início</button>
+                <h3 class="screen-title">🛒 Trocar Meus Pontos</h3>
+                
+                <div class="reward-item-card">
+                    <div class="reward-info">
+                        <h5>Desconto no IPTU Vitória</h5>
+                        <p>Abatimento de R$ 50,00 na taxa anual.</p>
+                    </div>
+                    <button class="btn-redeem" onclick="prepareRedeem(500, 'IPTU')">500 pt</button>
+                </div>
+
+                <div class="reward-item-card">
+                    <div class="reward-info">
+                        <h5>Bônus na Conta de Luz (EDP)</h5>
+                        <p>Crédito de R$ 30,00 na próxima fatura.</p>
+                    </div>
+                    <button class="btn-redeem" onclick="prepareRedeem(350, 'EDP')">350 pt</button>
+                </div>
+
+                <div class="reward-item-card">
+                    <div class="reward-info">
+                        <h5>Vale-compras Supermercado</h5>
+                        <p>Cupom de R$ 20,00 em redes parceiras.</p>
+                    </div>
+                    <button class="btn-redeem" onclick="prepareRedeem(250, 'SUPERMERCADO')">250 pt</button>
+                </div>
+            </div>
+
+            <div id="screen-redeem-action" class="app-screen">
+                <button class="form-control" style="background:#e0e0e0; color:#555; margin: 15px 0 10px 0; border:none; padding:8px; cursor:pointer;" onclick="navigateTo('screen-rewards')">⬅ Voltar para Recompensas</button>
+                
+                <h3 class="screen-title" id="redeem-title">Confirmar Resgate</h3>
+                <p style="font-size:12px; color:#555; margin-bottom: 5px;">Você está prestes a utilizar <strong id="redeem-cost-label" style="color: #2e7d32;"></strong>.</p>
+                <p style="font-size:11px; color:#888;">Preencha os dados abaixo para o sistema processar seu benefício.</p>
+
+                <div class="form-group-app">
+                    <label id="redeem-input-label">Dado Necessário:</label>
+                    <input type="text" id="redeem-input-field" class="form-control" placeholder="Digite aqui...">
+                </div>
+
+                <button class="form-control btn-success" onclick="confirmRedeem()">Confirmar Resgate e Debitar Pontos</button>
+            </div>
+
+            <div id="screen-guide" class="app-screen">
+                <button class="form-control" style="background:#e0e0e0; color:#555; margin: 15px 0 10px 0; border:none; padding:8px; cursor:pointer;" onclick="navigateTo('screen-home')">⬅ Voltar ao Início</button>
+                <h3 class="screen-title">♻️ Guia RecicleJá</h3>
+                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Como descartar e quanto vale cada material:</p>
+                
+                <div class="guide-topic">
+                    <h5 style="color: #c62828;">🔴 Garrafas de Plástico (PET)</h5>
+                    
+                    <div class="guide-points-box">
+                        <span class="guide-icon">🥤</span>
+                        <div class="points-tag-container" style="background: #ffebee;">
+                            <strong>Até 600 ml:</strong> <span style="color: #c62828; font-weight: bold;">5 pontos</span><br>
+                            <strong>De 600 ml a 3L:</strong> <span style="color: #c62828; font-weight: bold;">8 pontos</span>
+                        </div>
+                    </div>
+
+                    <ul>
+                        <li>Esvazie totalmente os líquidos antes de descartar.</li>
+                        <li><strong>Insira as garrafas limpas e NÃO as amasse</strong> para que a máquina possa lê-las corretamente.</li>
+                        <li>Deixe as tampas e os rótulos presos à garrafa.</li>
+                    </ul>
+                </div>
+
+                <div class="guide-topic">
+                    <h5 style="color: #ef6c00;">🟡 Latas Metálicas</h5>
+                    
+                    <div class="guide-points-box">
+                        <span class="guide-icon">🥫</span>
+                        <div class="points-tag-container" style="background: #fff3e0;">
+                            <strong>Lata de alumínio:</strong> <span style="color: #ef6c00; font-weight: bold;">10 pontos</span><br>
+                            <strong>Lata de aço (conservas):</strong> <span style="color: #ef6c00; font-weight: bold;">6 pontos</span>
+                        </div>
+                    </div>
+
+                    <ul>
+                        <li>Certifique-se de que a lata esteja completamente vazia.</li>
+                        <li><strong>Insira as latas limpas e NÃO as amasse</strong> para que a máquina identifique o formato.</li>
+                    </ul>
+                </div>
+
+                <div class="guide-topic">
+                    <h5 style="color: #2e7d32;">🟢 Vidros e Potes</h5>
+                    
+                    <div class="guide-points-box">
+                        <span class="guide-icon">🍾</span>
+                        <div class="points-tag-container" style="background: #e8f5e9;">
+                            <strong>Garrafa de vidro:</strong> <span style="color: #2e7d32; font-weight: bold;">7 pontos</span>
+                        </div>
+                    </div>
+
+                    <ul>
+                        <li>Aceitamos garrafas de bebidas e potes de conservas.</li>
+                        <li>Não insira vidros quebrados soltos para evitar acidentes.</li>
+                        <li>Insira os vidros e potes devidamente limpos.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="screen-profile" class="app-screen">
+                <button class="form-control" style="background:#e0e0e0; color:#555; margin: 15px 0 10px 0; border:none; padding:8px; cursor:pointer;" onclick="navigateTo('screen-home')">⬅ Voltar ao Início</button>
+                <h3 class="screen-title">👤 Meu Perfil</h3>
+                <p style="font-size:13px; margin: 5px 0;">Nome: <strong>Diana Vieira</strong></p>
+		<p style="font-size:13px; margin: 5px 0;">CPF: <strong>081.000.001-10</strong></p>
+		<p style="font-size:13px; margin: 5px 0;">Data de Nascimento: <strong>26/06/1980</strong></p>
+                <p style="font-size:13px; margin: 5px 0;">Cidade: Vitória - ES</p>
+            </div>
+
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" id="nav-home" onclick="navigateTo('screen-home')">
+                <span class="nav-icon">🏠</span>Início
+            </div>
+            <div class="nav-item" id="nav-qr" onclick="simulateEcoMachine()">
+                <span class="nav-icon">📷</span>Eco-Máquina
+            </div>
+            <div class="nav-item" id="nav-profile" onclick="navigateTo('screen-profile')">
+                <span class="nav-icon">👤</span>Perfil
+            </div>
+        </div>
+
+        <div id="app-modal" class="app-modal-overlay">
+            <div class="app-modal-box">
+                <div id="modal-icon" class="modal-icon">✅</div>
+                <h4 id="modal-title" class="modal-title">Sucesso!</h4>
+                <p id="modal-text" class="modal-text">Mensagem do aplicativo.</p>
+                <button class="btn-modal" onclick="closeModal()">OK, entendi</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentPoints = 1450;
+        let pendingCost = 0;
+        let pendingType = "";
+        let modalCallback = null;
+
+        const stationsDatabase = {
+            "Morro do Quadro": [{ name: "Eco-Estação RecicleJá Quadro", local: "Rua Projetada, s/n (Próximo à Praça central)" }],
+            "Bairro da Penha": [{ name: "Ponto de Coleta Penha", local: "Av. Robert Kennedy (Entrada do Bairro)" }],
+            "Andorinhas": [{ name: "Eco-Ponto Avançado Andorinhas", local: "Rua Emílio Ferreira da Silva" }],
+            "Centro": [{ name: "Eco-Estação RecicleJá Parque Moscoso", local: "Entrada Lateral do Parque" }],
+            "Jardim Camburi": [{ name: "Eco-Estação Inteligente J. Camburi", local: "Praça Geraldo Alvarenga" }],
+            "Praia do Canto": [{ name: "PEV RecicleJá Rio Branco", local: "Av. Rio Branco" }]
+        };
+
+        /* FUNÇÕES DE MODAL NATIVO (SUBSTITUI OS ALERTS) */
+        function showModal(title, text, icon, callback = null) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerText = text;
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('app-modal').classList.add('active');
+            modalCallback = callback;
+        }
+
+        function closeModal() {
+            document.getElementById('app-modal').classList.remove('active');
+            if (modalCallback) {
+                modalCallback();
+                modalCallback = null; 
+            }
+        }
+
+        /* OUTRAS FUNÇÕES DO APLICATIVO */
+        function renderPoints() {
+            document.getElementById('global-points').innerText = currentPoints + " pt";
+        }
+
+        function toggleBairroSelector() {
+            const wrapper = document.getElementById('bairro-wrapper');
+            wrapper.classList.toggle('visible');
+        }
+
+        function navigateTo(screenId) {
+            document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if (screenId === 'screen-home') document.getElementById('nav-home').classList.add('active');
+            if (screenId === 'screen-profile') document.getElementById('nav-profile').classList.add('active');
+        }
+
+        function searchStations() {
+            const select = document.getElementById('bairro-select');
+            const barrio = select.value;
+            const container = document.getElementById('station-results-container');
+            
+            if (!barrio) {
+                container.innerHTML = "";
+                return;
+            }
+
+            const stations = stationsDatabase[barrio];
+            container.innerHTML = "";
+
+            if (stations && stations.length > 0) {
+                stations.forEach(st => {
+                    const div = document.createElement('div');
+                    div.className = "station-card";
+                    div.innerHTML = `<h5>📍 ${st.name}</h5><p><strong>Local:</strong> ${st.local}</p>`;
+                    container.appendChild(div);
+                });
+            } else {
+                container.innerHTML = '<p style="font-size: 11px; color: #c62828; text-align: center;">Estação em mapeamento nesta comunidade.</p>';
+            }
+        }
+
+        function simulateEcoMachine() {
+            currentPoints += 75;
+            renderPoints();
+            
+            showModal(
+                "Leitura Concluída", 
+                "Sucesso! Material processado de forma rastreável: +75 EcoPontos adicionados à sua conta!", 
+                "♻️", 
+                () => navigateTo('screen-home')
+            );
+        }
+
+        function prepareRedeem(cost, type) {
+            if (currentPoints < cost) {
+                showModal("Saldo Insuficiente", "Você não tem EcoPontos suficientes para efetuar este resgate no momento.", "⚠️");
+                return;
+            }
+
+            pendingCost = cost;
+            pendingType = type;
+            
+            document.getElementById('redeem-input-field').value = "";
+            document.getElementById('redeem-cost-label').innerText = cost + " pt";
+
+            if (type === 'IPTU') {
+                document.getElementById('redeem-title').innerText = "Desconto IPTU Vitória";
+                document.getElementById('redeem-input-label').innerText = "Nº da Inscrição Imobiliária:";
+                document.getElementById('redeem-input-field').placeholder = "Ex: 1234567-8";
+            } else if (type === 'EDP') {
+                document.getElementById('redeem-title').innerText = "Bônus Conta de Luz (EDP)";
+                document.getElementById('redeem-input-label').innerText = "Nº da Instalação (Consta na fatura):";
+                document.getElementById('redeem-input-field').placeholder = "Ex: 987654321";
+            } else if (type === 'SUPERMERCADO') {
+                document.getElementById('redeem-title').innerText = "Vale-compras Supermercado";
+                document.getElementById('redeem-input-label').innerText = "Digite seu CPF:";
+                document.getElementById('redeem-input-field').placeholder = "000.000.000-00";
+            }
+
+            navigateTo('screen-redeem-action');
+        }
+
+        function confirmRedeem() {
+            let inputField = document.getElementById('redeem-input-field').value;
+
+            if (inputField.trim() === "") {
+                showModal("Atenção", "Por favor, preencha o campo obrigatório para prosseguir com o resgate.", "⚠️");
+                return;
+            }
+
+            currentPoints -= pendingCost;
+            renderPoints();
+            
+            showModal(
+                "Resgate Concluído!", 
+                `Seu benefício foi ativado e vinculado ao registro informado. O comprovante digital foi enviado para o seu e-mail.`, 
+                "🎁", 
+                () => navigateTo('screen-home')
+            );
+        }
+
+        renderPoints();
+    </script>
+</body>
+</html>
